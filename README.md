@@ -1,4 +1,4 @@
-# Neon Translate Pro
+# Translate Pro
 
 A modern multi-page translator web app built with pure **HTML, CSS, and JavaScript**.  
 It includes a futuristic tech UI, live animations, sidebar navigation, assistant popup, translation tools, voice input, OCR simulation, history, favorites, and download features.
