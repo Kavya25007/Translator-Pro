@@ -9,11 +9,9 @@
   --accent3:#23d5ab;
   --shadow:0 20px 60px rgba(0,0,0,.45);
 }
-
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
 body{perspective:1400px}
-
 .bg-wrap{position:fixed;inset:0;z-index:-3;overflow:hidden;background:#000}
 .bg-video{width:100%;height:100%;object-fit:cover;filter:blur(3px) brightness(.42) saturate(1.15);transform:scale(1.08)}
 .bg-overlay{position:absolute;inset:0;z-index:1;background:linear-gradient(135deg, rgba(4,10,22,.82), rgba(8,18,36,.72), rgba(2,8,20,.9))}
@@ -35,7 +33,6 @@ body{perspective:1400px}
 @keyframes float{50%{transform:translate3d(0,-20px,0) scale(1.05)}}
 
 .app-shell{display:grid;grid-template-columns:280px 1fr;height:100vh}
-
 .sidebar{
   padding:22px;
   border-right:1px solid rgba(140,190,255,.12);
@@ -46,6 +43,7 @@ body{perspective:1400px}
   gap:18px;
   transition:width .25s ease, transform .25s ease;
   overflow:auto;
+  width:280px;
 }
 .sidebar.collapsed{width:92px}
 .brand{display:flex;align-items:center;gap:12px}
@@ -77,7 +75,6 @@ body{perspective:1400px}
   border:1px solid rgba(140,190,255,.18);background:linear-gradient(180deg, rgba(20,40,72,.72), rgba(10,22,44,.85));
   color:var(--text);padding:12px;border-radius:16px;cursor:pointer
 }
-
 .main{
   height:100vh;
   overflow:auto;
@@ -175,6 +172,11 @@ textarea{min-height:240px;resize:vertical;line-height:1.6}
 .toggle-row{margin-top:14px;color:var(--muted);display:flex;flex-wrap:wrap;gap:16px}
 .info-box{
   margin-top:16px;padding:14px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(140,190,255,.12)
+}
+.direction-line{
+  margin:14px 0 0;
+  color:var(--accent3);
+  font-weight:600;
 }
 
 .feature-grid{flex-direction:column}
