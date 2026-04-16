@@ -4,24 +4,23 @@ const LANGS = [
   ["ru","Russian"],["it","Italian"],["ko","Korean"],["tr","Turkish"],["nl","Dutch"]
 ];
 
-const STORAGE_KEY = "neonTranslateStateV3";
+const STORAGE_KEY = "neonTranslateStateV4";
 let recognition, camStream, debounceTimer, typingTimer;
 let state = loadState();
 let currentTranslation = "";
 let typingPaused = false;
-let currentPage = "dashboard";
 
 const $ = id => document.getElementById(id);
 const els = {
   sidebar:$("sidebar"), pageTitle:$("pageTitle"), sidebarBtns:[...document.querySelectorAll(".nav-link")],
   pages:[...document.querySelectorAll(".page")], menuBtn:$("menuBtn"), collapseBtn:$("collapseBtn"),
-  themeBtn:$("themeBtn"), toastBtn:$("toastBtn"), assistantBtn:$("assistantBtn"), assistantFab:$("assistantFab"),
+  themeBtn:$("themeBtn"), cycleThemeBtn:$("cycleThemeBtn"), toastBtn:$("toastBtn"), assistantBtn:$("assistantBtn"), assistantFab:$("assistantFab"),
   assistantPopup:$("assistantPopup"), closeAssistantBtn:$("closeAssistantBtn"), assistantText:$("assistantText"),
   modalBackdrop:$("modalBackdrop"), modalBox:$("modalBox"), modalText:$("modalText"), closeModalBtn:$("closeModalBtn"),
-  toastStack:$("toastStack"), netChip:$("netChip"), speechChip:$("speechChip"), ocrChip:$("ocrChip"),
-  bgChip:$("bgChip"), bgVideo:$("bgVideo"), toggleBgBtn:$("toggleBgBtn"), toggleHistoryBtn:$("toggleHistoryBtn"),
+  toastStack:$("toastStack"), netChip:$("netChip"), speechChip:$("speechChip"), ocrChip:$("ocrChip"), bgChip:$("bgChip"),
+  bgVideo:$("bgVideo"), toggleBgBtn:$("toggleBgBtn"), toggleHistoryBtn:$("toggleHistoryBtn"),
   pageButtons:[...document.querySelectorAll("[data-go]")], assistantBtns:[...document.querySelectorAll(".assistant-btn")],
-  apiProvider:$("apiProvider"), apiKey:$("apiKey"), apiRegion:$("apiRegion"), apiEndpoint:$("apiEndpoint"),
+  apiProvider:$("apiProvider"), translatorKey:$("translatorKey"), apiRegion:$("apiRegion"), apiEndpoint:$("apiEndpoint"),
   translateMode:$("translateMode"), voiceSelect:$("voiceSelect"), rateRange:$("rateRange"), pitchRange:$("pitchRange"),
   sourceLang:$("sourceLang"), targetLang:$("targetLang"), swapBtn:$("swapBtn"), detectNowBtn:$("detectNowBtn"),
   inputText:$("inputText"), translatedText:$("translatedText"), typingCursor:$("typingCursor"),
@@ -29,40 +28,37 @@ const els = {
   cameraBtn:$("cameraBtn"), pasteBtn:$("pasteBtn"), clearBtn:$("clearBtn"), urlInput:$("urlInput"), fetchUrlBtn:$("fetchUrlBtn"),
   autoTranslate:$("autoTranslate"), autoSpeak:$("autoSpeak"), liveTyping:$("liveTyping"), ttsBtn:$("ttsBtn"), copyBtn:$("copyBtn"),
   downloadBtn:$("downloadBtn"), favoriteBtn:$("favoriteBtn"), charCount:$("charCount"), wordCount:$("wordCount"),
-  readTime:$("readTime"), detectLabel:$("detectLabel"), summaryText:$("summaryText"), statusLabel:$("statusLabel"),
-  copyInputBtn:$("copyInputBtn"), uppercaseBtn:$("uppercaseBtn"), lowercaseBtn:$("lowercaseBtn"), trimBtn:$("trimBtn"),
-  historySearch:$("historySearch"), favSearch:$("favSearch"), historyList:$("historyList"), favoritesList:$("favoritesList"),
-  exportHistoryBtn:$("exportHistoryBtn"), clearHistoryBtn:$("clearHistoryBtn"), reportBtn:$("reportBtn"),
-  compareBtn:$("compareBtn"), comparePanel:$("comparePanel"), closeCompareBtn:$("closeCompareBtn"), compareInput:$("compareInput"),
-  compareOutput:$("compareOutput"), pauseAnimBtn:$("pauseAnimBtn"), resumeAnimBtn:$("resumeAnimBtn"),
-  cameraStream:$("cameraStream"), captureCanvas:$("captureCanvas")
+  readTime:$("readTime"), detectLabel:$("detectLabel"), summaryText:$("summaryText"), translationInfo:$("translationInfo"),
+  statusLabel:$("statusLabel"), copyInputBtn:$("copyInputBtn"), historySearch:$("historySearch"), favSearch:$("favSearch"),
+  historyList:$("historyList"), favoritesList:$("favoritesList"), exportHistoryBtn:$("exportHistoryBtn"),
+  clearHistoryBtn:$("clearHistoryBtn"), reportBtn:$("reportBtn"), compareBtn:$("compareBtn"), comparePanel:$("comparePanel"),
+  closeCompareBtn:$("closeCompareBtn"), compareInput:$("compareInput"), compareOutput:$("compareOutput"),
+  pauseAnimBtn:$("pauseAnimBtn"), resumeAnimBtn:$("resumeAnimBtn"), cameraStream:$("cameraStream"), captureCanvas:$("captureCanvas")
 };
 
 function loadState(){
   try{
     return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
-      apiProvider:"custom", apiKey:"", apiRegion:"", apiEndpoint:"",
+      apiProvider:"custom", translatorKey:"", apiRegion:"", apiEndpoint:"",
       translateMode:"normal", rate:1, pitch:1, favorites:[], history:[], theme:"blue", bgOn:true
     };
   }catch{
-    return {apiProvider:"custom", apiKey:"", apiRegion:"", apiEndpoint:"", translateMode:"normal", rate:1, pitch:1, favorites:[], history:[], theme:"blue", bgOn:true};
+    return {apiProvider:"custom", translatorKey:"", apiRegion:"", apiEndpoint:"", translateMode:"normal", rate:1, pitch:1, favorites:[], history:[], theme:"blue", bgOn:true};
   }
 }
 function saveState(){
-  state.apiProvider = els.apiProvider.value;
-  state.apiKey = els.apiKey.value;
-  state.apiRegion = els.apiRegion.value;
-  state.apiEndpoint = els.apiEndpoint.value;
-  state.translateMode = els.translateMode.value;
-  state.rate = Number(els.rateRange.value);
-  state.pitch = Number(els.pitchRange.value);
+  state.apiProvider = els.apiProvider?.value || "custom";
+  state.translatorKey = els.translatorKey?.value || "";
+  state.apiRegion = els.apiRegion?.value || "";
+  state.apiEndpoint = els.apiEndpoint?.value || "";
+  state.translateMode = els.translateMode?.value || "normal";
+  state.rate = Number(els.rateRange?.value || 1);
+  state.pitch = Number(els.pitchRange?.value || 1);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
-function debounce(fn, delay=650){
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(fn, delay);
-}
+function debounce(fn, delay=650){ clearTimeout(debounceTimer); debounceTimer = setTimeout(fn, delay); }
 function toast(message, type="info"){
+  if(!els.toastStack) return;
   const t = document.createElement("div");
   t.className = "toast";
   t.textContent = message;
@@ -71,116 +67,117 @@ function toast(message, type="info"){
   setTimeout(()=>{ t.style.opacity = "0"; t.style.transform = "translateX(18px)"; }, 2200);
   setTimeout(()=>t.remove(), 2700);
 }
-function openModal(title, text){
-  els.modalText.textContent = text;
-  els.modalBox.querySelector("h3").textContent = title;
-  els.modalBackdrop.classList.add("open");
-  els.modalBox.classList.add("open");
-}
-function closeModal(){
-  els.modalBackdrop.classList.remove("open");
-  els.modalBox.classList.remove("open");
-}
-function setPage(page){
-  currentPage = page;
-  els.pages.forEach(p => p.classList.toggle("active", p.id === `page-${page}`));
-  els.sidebarBtns.forEach(b => b.classList.toggle("active", b.dataset.page === page));
-  els.pageTitle.textContent = page.charAt(0).toUpperCase() + page.slice(1);
-  if(window.innerWidth <= 900) els.sidebar.classList.remove("open");
-}
-function escapeHtml(str){ return (str||"").replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[s])); }
-function detectLanguage(text){
-  const t = text.trim();
-  if(!t) return "—";
-  if(/[а-я]/i.test(t)) return "Russian";
-  if(/[अ-ह]/.test(t)) return "Hindi";
-  if(/[¿¡áéíóúñ]/i.test(t)) return "Spanish";
-  if(/[äöüß]/i.test(t)) return "German";
-  if(/[àâçéèêëîïôùûüÿœ]/i.test(t)) return "French";
-  if(/[한글]/.test(t)) return "Korean";
-  if(/[漢字かなカナ]/.test(t)) return "East Asian";
-  return "English-like";
-}
-function summarize(text){
-  const words = text.trim().split(/\s+/).filter(Boolean);
-  return words.length ? words.slice(0, Math.min(24, words.length)).join(" ") + (words.length > 24 ? "..." : "") : "Summary will appear here.";
-}
-function metaText(input, output){
-  return `Mode: ${els.translateMode.value} • Provider: ${els.apiProvider.value} • Source: ${els.sourceLang.value} • Target: ${els.targetLang.value} • Words: ${input.split(/\s+/).filter(Boolean).length} • Output chars: ${output.length}`;
-}
-function applyMode(text){
-  const mode = els.translateMode.value;
-  if(mode === "formal") return "Dear user, " + text;
-  if(mode === "casual") return "Hey! " + text;
-  if(mode === "technical") return "[TECH] " + text;
-  if(mode === "simple") return text.replace(/\butilize\b/gi, "use").replace(/\bcommence\b/gi, "start");
-  return text;
-}
+function openModal(title, text){ if(!els.modalBox || !els.modalBackdrop || !els.modalText) return; els.modalText.textContent = text; const h3 = els.modalBox.querySelector("h3"); if(h3) h3.textContent = title; els.modalBackdrop.classList.add("open"); els.modalBox.classList.add("open"); }
+function closeModal(){ els.modalBackdrop?.classList.remove("open"); els.modalBox?.classList.remove("open"); }
+function setPage(page){ els.pages.forEach(p => p.classList.toggle("active", p.id === `page-${page}`)); els.sidebarBtns.forEach(b => b.classList.toggle("active", b.dataset.page === page)); if(els.pageTitle) els.pageTitle.textContent = page.charAt(0).toUpperCase() + page.slice(1); if(window.innerWidth <= 900) els.sidebar?.classList.remove("open"); }
+function escapeHtml(str){ return (str||"").replace(/[&<>\"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":"&#39;"}[s])); }
+function detectLanguage(text){ const t = text.trim(); if(!t) return "—"; if(/[а-я]/i.test(t)) return "Russian"; if(/[अ-ह]/.test(t)) return "Hindi"; if(/[¿¡áéíóúñ]/i.test(t)) return "Spanish"; if(/[äöüß]/i.test(t)) return "German"; if(/[àâçéèêëîïôùûüÿœ]/i.test(t)) return "French"; if(/[한글]/.test(t)) return "Korean"; if(/[漢字かなカナ]/.test(t)) return "East Asian"; return "English-like"; }
+function summarize(text){ const words = text.trim().split(/\s+/).filter(Boolean); return words.length ? words.slice(0, Math.min(24, words.length)).join(" ") + (words.length > 24 ? "..." : "") : "Summary will appear here."; }
+function metaText(input, output){ return `Source: ${els.sourceLang?.value || "auto"} • Target: ${els.targetLang?.value || "hi"} • Mode: ${els.translateMode?.value || "normal"} • Provider: ${els.apiProvider?.value || "custom"} • Output chars: ${output.length}`; }
+function applyMode(text){ return text; }
+
 async function performTranslation(text, from, to){
-  const endpoint = els.apiEndpoint.value.trim();
-  const provider = els.apiProvider.value;
-  const payload = {q:text, source:from, target:to, mode:els.translateMode.value, apiKey:els.apiKey.value, region:els.apiRegion.value, provider};
-  if(provider !== "mock" && endpoint){
-    try{
-      const res = await fetch(endpoint, {
-        method:"POST",
-        headers:{"Content-Type":"application/json","Authorization":`Bearer ${els.apiKey.value}`},
-        body:JSON.stringify(payload)
-      });
-      if(res.ok){
-        const data = await res.json();
-        return data.translatedText || data.translation || data.result || JSON.stringify(data);
-      }
-    }catch{}
+  const key = els.translatorKey?.value.trim() || "";
+  const region = els.apiRegion?.value.trim() || "";
+  const endpoint = (els.apiEndpoint?.value.trim() || "https://api.cognitive.microsofttranslator.com").replace(/\/$/, "");
+  if(!text.trim()) return "";
+  if(!key) return `[${from.toUpperCase()} → ${to.toUpperCase()}] ${text}`;
+
+  const url = `${endpoint}/translate?api-version=3.0&to=${encodeURIComponent(to)}${from !== "auto" ? `&from=${encodeURIComponent(from)}` : ""}`;
+
+  try{
+    const res = await fetch(url, {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Ocp-Apim-Subscription-Key": key,
+        ...(region ? {"Ocp-Apim-Subscription-Region": region} : {})
+      },
+      body: JSON.stringify([{ Text: text }])
+    });
+
+    if(!res.ok){
+      const errText = await res.text();
+      throw new Error(`Translator error ${res.status}: ${errText}`);
+    }
+
+    const data = await res.json();
+    return data?.[0]?.translations?.[0]?.text || "No translation returned.";
+  }catch(err){
+    if(els.statusLabel) els.statusLabel.textContent = "Error";
+    toast(err.message || "Translation failed", "danger");
+    return `[Error] ${text}`;
   }
-  return applyMode(`[${from.toUpperCase()}→${to.toUpperCase()}] ` + text.split("").reverse().join(""));
 }
+
 function typeEffect(text){
   clearInterval(typingTimer);
-  els.translatedText.textContent = "";
-  if(!els.liveTyping.checked){ els.translatedText.textContent = text; return; }
+  if(els.translatedText) els.translatedText.textContent = "";
+  if(!els.liveTyping?.checked){
+    if(els.translatedText) els.translatedText.textContent = text;
+    return;
+  }
   let i = 0;
   typingPaused = false;
-  els.typingCursor.style.display = "inline-block";
+  if(els.typingCursor) els.typingCursor.style.display = "inline-block";
   typingTimer = setInterval(()=>{
     if(typingPaused) return;
-    els.translatedText.textContent += text[i] || "";
+    if(els.translatedText) els.translatedText.textContent += text[i] || "";
     i++;
     if(i >= text.length) clearInterval(typingTimer);
   }, 16);
 }
+
 function renderVoices(){
   const voices = speechSynthesis?.getVoices?.() || [];
-  els.voiceSelect.innerHTML = voices.length ? voices.map((v,i)=>`<option value="${i}">${v.name} (${v.lang})</option>`).join("") : `<option value="0">Default voice</option>`;
+  if(els.voiceSelect) els.voiceSelect.innerHTML = voices.length ? voices.map((v,i)=>`<option value="${i}">${v.name} (${v.lang})</option>`).join("") : `<option value="0">Default voice</option>`;
 }
 if("speechSynthesis" in window) speechSynthesis.onvoiceschanged = renderVoices;
 
+function updateDirectionLine(){
+  const from = els.sourceLang?.options[els.sourceLang.selectedIndex]?.text || "Auto Detect";
+  const to = els.targetLang?.options[els.targetLang.selectedIndex]?.text || "Target";
+  const el = $("directionLine");
+  if(el) el.textContent = `Translating: ${from} → ${to}`;
+}
+
 async function translateNow(){
-  const input = els.inputText.value.trim();
-  if(!input){ els.translatedText.textContent=""; return; }
-  els.statusLabel.textContent = "Translating...";
-  const detected = els.sourceLang.value === "auto" ? detectLanguage(input) : els.sourceLang.options[els.sourceLang.selectedIndex].text;
-  els.detectLabel.textContent = `Detected: ${detected}`;
-  els.charCount.textContent = `Chars: ${input.length}`;
-  els.wordCount.textContent = `Words: ${input.split(/\s+/).filter(Boolean).length}`;
-  els.readTime.textContent = `Read: ${Math.max(1, Math.ceil(input.split(/\s+/).filter(Boolean).length / 200))}m`;
-  els.summaryText.textContent = summarize(input);
-  const translated = await performTranslation(input, els.sourceLang.value, els.targetLang.value);
+  const input = els.inputText?.value.trim() || "";
+  if(!input){
+    if(els.translatedText) els.translatedText.textContent="";
+    return;
+  }
+
+  if(els.statusLabel) els.statusLabel.textContent = "Translating...";
+  const detected = els.sourceLang?.value === "auto" ? detectLanguage(input) : (els.sourceLang?.options[els.sourceLang.selectedIndex]?.text || "Unknown");
+  if(els.detectLabel) els.detectLabel.textContent = `Detected: ${detected}`;
+  if(els.charCount) els.charCount.textContent = `Chars: ${input.length}`;
+  if(els.wordCount) els.wordCount.textContent = `Words: ${input.split(/\s+/).filter(Boolean).length}`;
+  if(els.readTime) els.readTime.textContent = `Read: ${Math.max(1, Math.ceil(input.split(/\s+/).filter(Boolean).length / 200))}m`;
+  if(els.summaryText) els.summaryText.textContent = summarize(input);
+  updateDirectionLine();
+
+  const translated = await performTranslation(input, els.sourceLang?.value || "auto", els.targetLang?.value || "hi");
   currentTranslation = translated;
   typeEffect(translated);
-  els.statusLabel.textContent = "Done";
-  toast("Translated successfully", "success");
-  els.compareInput.textContent = input;
-  els.compareOutput.textContent = translated;
+
+  if(els.statusLabel) els.statusLabel.textContent = translated.startsWith("[Error]") ? "Error" : "Done";
+  if(els.translationInfo) els.translationInfo.textContent = metaText(input, translated);
+  if(els.compareInput) els.compareInput.textContent = input;
+  if(els.compareOutput) els.compareOutput.textContent = translated;
+
   addHistory(input, translated);
-  if(els.autoSpeak.checked) speakText(translated);
+  if(els.autoSpeak?.checked) speakText(translated);
+  toast(`Translated ${String(els.sourceLang?.value || "auto").toUpperCase()} to ${String(els.targetLang?.value || "hi").toUpperCase()}`, translated.startsWith("[Error]") ? "danger" : "success");
 }
+
 function addHistory(input, output){
-  state.history.unshift({input, output, source:els.sourceLang.value, target:els.targetLang.value, mode:els.translateMode.value, time:new Date().toLocaleString()});
+  state.history.unshift({input, output, source:els.sourceLang?.value || "auto", target:els.targetLang?.value || "hi", mode:els.translateMode?.value || "normal", time:new Date().toLocaleString()});
   state.history = state.history.slice(0, 60);
   saveState();
   renderLists();
 }
+
 function addFavorite(text=currentTranslation){
   if(!text) return;
   if(!state.favorites.includes(text)){
@@ -191,34 +188,39 @@ function addFavorite(text=currentTranslation){
     toast("Saved to favorites", "success");
   }
 }
+
 function renderLists(){
-  const hs = els.historySearch.value.trim().toLowerCase();
-  const fs = els.favSearch.value.trim().toLowerCase();
-  els.historyList.innerHTML = state.history.filter(x=>!hs || `${x.input} ${x.output} ${x.mode}`.toLowerCase().includes(hs)).map(h=>`
+  const hs = els.historySearch?.value.trim().toLowerCase() || "";
+  const fs = els.favSearch?.value.trim().toLowerCase() || "";
+  if(els.historyList) els.historyList.innerHTML = state.history.filter(x=>!hs || `${x.input} ${x.output} ${x.mode}`.toLowerCase().includes(hs)).map(h=>`
     <div class="history-item">
       <strong>${h.source} → ${h.target}</strong> <small>${h.time}</small><br/>
       <small>${h.mode}</small><br/>
       <span>${escapeHtml(h.output)}</span>
     </div>
   `).join("") || "<p>No history yet.</p>";
-  els.favoritesList.innerHTML = state.favorites.filter(x=>!fs || x.toLowerCase().includes(fs)).map(x=>`
+  if(els.favoritesList) els.favoritesList.innerHTML = state.favorites.filter(x=>!fs || x.toLowerCase().includes(fs)).map(x=>`
     <div class="history-item">${escapeHtml(x)}</div>
   `).join("") || "<p>No favorites yet.</p>";
 }
+
 function speakText(text){
   if(!window.speechSynthesis) return toast("Speech synthesis not supported", "danger");
   const voices = speechSynthesis.getVoices();
-  const u = new SpeechSynthesisUtterance(text || currentTranslation || els.translatedText.textContent);
-  u.rate = Number(els.rateRange.value);
-  u.pitch = Number(els.pitchRange.value);
-  if(voices.length) u.voice = voices[Number(els.voiceSelect.value)] || voices[0];
-  speechSynthesis.cancel(); speechSynthesis.speak(u);
+  const u = new SpeechSynthesisUtterance(text || currentTranslation || els.translatedText?.textContent || "");
+  u.rate = Number(els.rateRange?.value || 1);
+  u.pitch = Number(els.pitchRange?.value || 1);
+  if(voices.length) u.voice = voices[Number(els.voiceSelect?.value || 0)] || voices[0];
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
   toast("Speaking output", "info");
 }
+
 async function copyText(text){
-  await navigator.clipboard.writeText(text || currentTranslation || els.translatedText.textContent || "");
+  await navigator.clipboard.writeText(text || currentTranslation || els.translatedText?.textContent || "");
   toast("Copied to clipboard", "success");
 }
+
 function downloadText(content, name, type="text/plain"){
   const blob = new Blob([content], {type});
   const a = document.createElement("a");
@@ -227,26 +229,30 @@ function downloadText(content, name, type="text/plain"){
   a.click();
   URL.revokeObjectURL(a.href);
 }
+
 function downloadReport(){
   const report = {
     generatedAt:new Date().toISOString(),
-    settings:{provider:els.apiProvider.value, region:els.apiRegion.value, endpoint:els.apiEndpoint.value, mode:els.translateMode.value},
-    input: els.inputText.value,
+    settings:{provider:els.apiProvider?.value, region:els.apiRegion?.value, endpoint:els.apiEndpoint?.value, mode:els.translateMode?.value},
+    input: els.inputText?.value || "",
     output: currentTranslation,
-    language:{source:els.sourceLang.value, target:els.targetLang.value, detected:els.detectLabel.textContent},
-    counts:{chars:els.inputText.value.length, words:els.inputText.value.trim().split(/\s+/).filter(Boolean).length},
+    language:{source:els.sourceLang?.value, target:els.targetLang?.value, detected:els.detectLabel?.textContent},
+    counts:{chars:(els.inputText?.value || "").length, words:(els.inputText?.value || "").trim().split(/\s+/).filter(Boolean).length},
     favorites: state.favorites,
     history: state.history.slice(0, 10)
   };
   downloadText(JSON.stringify(report, null, 2), "translation-report.json", "application/json");
 }
+
 function swapLanguages(){
-  if(els.sourceLang.value === "auto") return;
+  if(els.sourceLang?.value === "auto") return;
   const a = els.sourceLang.value;
   els.sourceLang.value = els.targetLang.value;
   els.targetLang.value = a;
+  updateDirectionLine();
   updateLive();
 }
+
 function startVoiceInput(){
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SR) return toast("Speech recognition not supported", "danger");
@@ -260,33 +266,54 @@ function startVoiceInput(){
     els.inputText.value = transcript.trim();
     updateLive();
   };
-  recognition.onend = ()=>{ els.speechChip.textContent = "Speech Ready"; toast("Voice input stopped", "info"); };
+  recognition.onend = ()=>{
+    if(els.speechChip) els.speechChip.textContent = "Speech Ready";
+    toast("Voice input stopped", "info");
+  };
   recognition.start();
-  els.speechChip.textContent = "Listening...";
+  if(els.speechChip) els.speechChip.textContent = "Listening...";
   toast("Listening for voice input", "info");
 }
+
 function stopVoiceInput(){ recognition?.stop?.(); }
-function simulateOCR(text){ els.inputText.value = text; updateLive(); toast("OCR simulated text loaded", "info"); }
+
+function simulateOCR(text){
+  if(els.inputText) els.inputText.value = text;
+  updateLive();
+  toast("OCR simulated text loaded", "info");
+}
+
 async function handleImageFile(file){ if(file) simulateOCR(`OCR simulated from image: ${file.name}.`); }
+
 async function startCamera(){
   try{
     camStream = await navigator.mediaDevices.getUserMedia({video:true,audio:false});
-    els.cameraStream.srcObject = camStream;
-    els.cameraStream.classList.remove("hidden");
-    els.ocrChip.textContent = "Camera On";
+    if(els.cameraStream){
+      els.cameraStream.srcObject = camStream;
+      els.cameraStream.classList.remove("hidden");
+    }
+    if(els.ocrChip) els.ocrChip.textContent = "Camera On";
     toast("Camera opened", "success");
-    setTimeout(()=>{ stopCamera(); simulateOCR("OCR simulated from camera capture."); }, 1800);
+    setTimeout(()=>{
+      stopCamera();
+      simulateOCR("OCR simulated from camera capture.");
+    }, 1800);
   }catch{
     toast("Camera access denied or unavailable", "danger");
   }
 }
+
 function stopCamera(){
-  if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream = null; }
-  els.cameraStream.classList.add("hidden");
-  els.ocrChip.textContent = "OCR Simulated";
+  if(camStream){
+    camStream.getTracks().forEach(t=>t.stop());
+    camStream = null;
+  }
+  els.cameraStream?.classList.add("hidden");
+  if(els.ocrChip) els.ocrChip.textContent = "OCR Simulated";
 }
+
 async function fetchUrlText(){
-  const url = els.urlInput.value.trim();
+  const url = els.urlInput?.value.trim() || "";
   if(!url) return;
   try{
     const html = await fetch(url, {mode:"cors"}).then(r=>r.text());
@@ -300,150 +327,140 @@ async function fetchUrlText(){
     openModal("CORS Limit", "The browser blocked this request because the target site does not allow cross-origin access.");
   }
 }
+
 function updateLive(){
-  const text = els.inputText.value || "";
-  els.charCount.textContent = `Chars: ${text.length}`;
-  els.wordCount.textContent = `Words: ${text.trim().split(/\s+/).filter(Boolean).length}`;
-  els.readTime.textContent = `Read: ${Math.max(1, Math.ceil(text.split(/\s+/).filter(Boolean).length / 200))}m`;
-  els.detectLabel.textContent = `Detected: ${detectLanguage(text)}`;
-  els.summaryText.textContent = summarize(text);
-  if(els.autoTranslate.checked) debounce(translateNow, 650);
+  const text = els.inputText?.value || "";
+  if(els.charCount) els.charCount.textContent = `Chars: ${text.length}`;
+  if(els.wordCount) els.wordCount.textContent = `Words: ${text.trim().split(/\s+/).filter(Boolean).length}`;
+  if(els.readTime) els.readTime.textContent = `Read: ${Math.max(1, Math.ceil(text.split(/\s+/).filter(Boolean).length / 200))}m`;
+  if(els.detectLabel) els.detectLabel.textContent = `Detected: ${detectLanguage(text)}`;
+  if(els.summaryText) els.summaryText.textContent = summarize(text);
+  updateDirectionLine();
+  if(els.autoTranslate?.checked) debounce(translateNow, 650);
 }
+
 function updateFeatureChips(){
-  els.netChip.textContent = navigator.onLine ? "Online" : "Offline";
-  els.speechChip.textContent = ("SpeechRecognition" in window || "webkitSpeechRecognition" in window) ? "Speech Ready" : "Speech Limited";
+  if(els.netChip) els.netChip.textContent = navigator.onLine ? "Online" : "Offline";
+  if(els.speechChip) els.speechChip.textContent = ("SpeechRecognition" in window || "webkitSpeechRecognition" in window) ? "Speech Ready" : "Speech Limited";
 }
+
 function updateBgState(){
-  els.bgChip.textContent = state.bgOn ? "Background On" : "Background Off";
-  els.bgVideo.style.display = state.bgOn ? "block" : "none";
+  if(els.bgChip) els.bgChip.textContent = state.bgOn ? "Background On" : "Background Off";
+  if(els.bgVideo) els.bgVideo.style.display = state.bgOn ? "block" : "none";
 }
+
 function applyTheme(){
-  document.documentElement.style.setProperty("--accent",
-    state.theme === "purple" ? "#9b5cff" : state.theme === "green" ? "#23d5ab" : "#4cc9f0");
+  document.documentElement.style.setProperty("--accent", state.theme === "purple" ? "#9b5cff" : state.theme === "green" ? "#23d5ab" : "#4cc9f0");
 }
-function syncView(){
-  els.compareInput.textContent = els.inputText.value || "—";
-  els.compareOutput.textContent = currentTranslation || "—";
-}
-function openAssistant(){
-  els.assistantPopup.classList.add("open");
-}
-function closeAssistant(){
-  els.assistantPopup.classList.remove("open");
-}
-function bindTilt(){
-  const max = 8;
-  const card = $("tiltCard");
-  card.addEventListener("mousemove", e=>{
-    const r = card.getBoundingClientRect();
-    const x = (e.clientX - r.left) / r.width - 0.5;
-    const y = (e.clientY - r.top) / r.height - 0.5;
-    card.style.transform = `rotateX(${(-y*max).toFixed(2)}deg) rotateY(${(x*max).toFixed(2)}deg)`;
-  });
-  card.addEventListener("mouseleave", ()=> card.style.transform = "rotateX(0deg) rotateY(0deg)");
-}
+
+function openAssistant(){ els.assistantPopup?.classList.add("open"); }
+function closeAssistant(){ els.assistantPopup?.classList.remove("open"); }
+
 function bindEvents(){
   els.sidebarBtns.forEach(btn => btn.onclick = () => setPage(btn.dataset.page));
   els.pageButtons.forEach(btn => btn.onclick = () => setPage(btn.dataset.go));
-  els.menuBtn.onclick = () => els.sidebar.classList.toggle("open");
-  els.collapseBtn.onclick = () => els.sidebar.classList.toggle("collapsed");
-  els.themeBtn.onclick = ()=>{ state.theme = state.theme === "blue" ? "purple" : state.theme === "purple" ? "green" : "blue"; applyTheme(); saveState(); toast("Theme changed", "info"); };
-  els.toastBtn.onclick = ()=>openModal("Navigation Tip", "Use the sidebar to switch pages. The assistant button can help users quickly find features.");
-  els.assistantBtn.onclick = openAssistant;
-  els.assistantFab.onclick = openAssistant;
-  els.closeAssistantBtn.onclick = closeAssistant;
-  els.closeModalBtn.onclick = closeModal;
-  els.modalBackdrop.onclick = closeModal;
+  if(els.menuBtn) els.menuBtn.onclick = () => els.sidebar?.classList.toggle("open");
+  if(els.collapseBtn) els.collapseBtn.onclick = () => els.sidebar?.classList.toggle("collapsed");
+
+  const themeHandler = ()=>{
+    state.theme = state.theme === "blue" ? "purple" : state.theme === "purple" ? "green" : "blue";
+    applyTheme();
+    saveState();
+    toast("Theme changed", "info");
+  };
+  if(els.themeBtn) els.themeBtn.onclick = themeHandler;
+  if(els.cycleThemeBtn) els.cycleThemeBtn.onclick = themeHandler;
+
+  if(els.toastBtn) els.toastBtn.onclick = ()=>openModal("Navigation Tip", "Use the sidebar to switch pages. The assistant button can help users quickly find features.");
+  if(els.assistantBtn) els.assistantBtn.onclick = openAssistant;
+  if(els.assistantFab) els.assistantFab.onclick = openAssistant;
+  if(els.closeAssistantBtn) els.closeAssistantBtn.onclick = closeAssistant;
+  if(els.closeModalBtn) els.closeModalBtn.onclick = closeModal;
+  if(els.modalBackdrop) els.modalBackdrop.onclick = closeModal;
+
   els.assistantBtns.forEach(btn => btn.onclick = () => {
     setPage(btn.dataset.help);
     closeAssistant();
     toast(`Opened ${btn.dataset.help}`, "info");
   });
 
-  els.apiProvider.onchange = saveState;
-  [els.apiKey, els.apiRegion, els.apiEndpoint, els.translateMode, els.rateRange, els.pitchRange].forEach(el => el.addEventListener("input", saveState));
-  els.sourceLang.onchange = updateLive;
-  els.targetLang.onchange = updateLive;
+  if(els.apiProvider) els.apiProvider.onchange = saveState;
+  [els.translatorKey, els.apiRegion, els.apiEndpoint, els.translateMode, els.rateRange, els.pitchRange].forEach(el => el && el.addEventListener("input", saveState));
 
-  els.translateBtn.onclick = translateNow;
-  els.swapBtn.onclick = swapLanguages;
-  els.detectNowBtn.onclick = ()=>{ els.detectLabel.textContent = `Detected: ${detectLanguage(els.inputText.value)}`; toast("Language detected", "info"); };
+  if(els.sourceLang) els.sourceLang.onchange = ()=>{ updateDirectionLine(); updateLive(); };
+  if(els.targetLang) els.targetLang.onchange = ()=>{ updateDirectionLine(); updateLive(); };
 
-  els.voiceBtn.onclick = startVoiceInput;
-  els.stopVoiceBtn.onclick = stopVoiceInput;
-  els.imageUpload.onchange = e => handleImageFile(e.target.files[0]);
-  els.cameraBtn.onclick = startCamera;
+  if(els.translateBtn) els.translateBtn.onclick = translateNow;
+  if(els.swapBtn) els.swapBtn.onclick = swapLanguages;
+  if(els.detectNowBtn) els.detectNowBtn.onclick = ()=>{ if(els.detectLabel) els.detectLabel.textContent = `Detected: ${detectLanguage(els.inputText?.value || "")}`; toast("Language detected", "info"); };
 
-  els.pasteBtn.onclick = async ()=>{ els.inputText.value = await navigator.clipboard.readText(); updateLive(); toast("Pasted from clipboard", "success"); };
-  els.clearBtn.onclick = ()=>{ els.inputText.value = ""; els.translatedText.textContent = ""; currentTranslation = ""; updateLive(); toast("Input cleared", "info"); };
-  els.fetchUrlBtn.onclick = fetchUrlText;
+  if(els.voiceBtn) els.voiceBtn.onclick = startVoiceInput;
+  if(els.stopVoiceBtn) els.stopVoiceBtn.onclick = stopVoiceInput;
+  if(els.imageUpload) els.imageUpload.onchange = e => handleImageFile(e.target.files[0]);
+  if(els.cameraBtn) els.cameraBtn.onclick = startCamera;
 
-  els.autoTranslate.onchange = updateLive;
-  els.autoSpeak.onchange = saveState;
-  els.liveTyping.onchange = saveState;
+  if(els.pasteBtn) els.pasteBtn.onclick = async ()=>{ els.inputText.value = await navigator.clipboard.readText(); updateLive(); toast("Pasted from clipboard", "success"); };
+  if(els.clearBtn) els.clearBtn.onclick = ()=>{ els.inputText.value = ""; if(els.translatedText) els.translatedText.textContent = ""; currentTranslation = ""; updateLive(); toast("Input cleared", "info"); };
+  if(els.fetchUrlBtn) els.fetchUrlBtn.onclick = fetchUrlText;
 
-  els.ttsBtn.onclick = ()=>speakText();
-  els.copyBtn.onclick = ()=>copyText();
-  els.copyInputBtn.onclick = ()=>copyText(els.inputText.value);
-  els.uppercaseBtn.onclick = ()=>{ els.inputText.value = els.inputText.value.toUpperCase(); updateLive(); };
-  els.lowercaseBtn.onclick = ()=>{ els.inputText.value = els.inputText.value.toLowerCase(); updateLive(); };
-  els.trimBtn.onclick = ()=>{ els.inputText.value = els.inputText.value.replace(/\s+/g, " ").trim(); updateLive(); };
-  els.downloadBtn.onclick = ()=>downloadText(currentTranslation || els.translatedText.textContent, "translated-text.txt");
-  els.favoriteBtn.onclick = ()=>addFavorite();
-  els.reportBtn.onclick = downloadReport;
+  if(els.autoTranslate) els.autoTranslate.onchange = updateLive;
+  if(els.autoSpeak) els.autoSpeak.onchange = saveState;
+  if(els.liveTyping) els.liveTyping.onchange = saveState;
 
-  els.compareBtn.onclick = ()=>{ els.comparePanel.classList.add("open"); syncView(); };
-  els.closeCompareBtn.onclick = ()=>els.comparePanel.classList.remove("open");
+  if(els.ttsBtn) els.ttsBtn.onclick = ()=>speakText();
+  if(els.copyBtn) els.copyBtn.onclick = ()=>copyText();
+  if(els.copyInputBtn) els.copyInputBtn.onclick = ()=>copyText(els.inputText?.value || "");
+  if(els.downloadBtn) els.downloadBtn.onclick = ()=>downloadText(currentTranslation || els.translatedText?.textContent || "", "translated-text.txt");
+  if(els.favoriteBtn) els.favoriteBtn.onclick = ()=>addFavorite();
+  if(els.reportBtn) els.reportBtn.onclick = downloadReport;
 
-  els.pauseAnimBtn.onclick = ()=>typingPaused = true;
-  els.resumeAnimBtn.onclick = ()=>typingPaused = false;
+  if(els.compareBtn) els.compareBtn.onclick = ()=>{
+    els.comparePanel?.classList.add("open");
+    if(els.compareInput) els.compareInput.textContent = els.inputText?.value || "—";
+    if(els.compareOutput) els.compareOutput.textContent = currentTranslation || "—";
+  };
+  if(els.closeCompareBtn) els.closeCompareBtn.onclick = ()=>els.comparePanel?.classList.remove("open");
 
-  els.toggleHistoryBtn.onclick = ()=>setPage("history");
-  els.exportHistoryBtn.onclick = ()=>downloadText(JSON.stringify(state.history, null, 2), "history.json", "application/json");
-  els.clearHistoryBtn.onclick = ()=>{ state.history = []; saveState(); renderLists(); toast("History cleared", "info"); };
+  if(els.pauseAnimBtn) els.pauseAnimBtn.onclick = ()=>typingPaused = true;
+  if(els.resumeAnimBtn) els.resumeAnimBtn.onclick = ()=>typingPaused = false;
+  if(els.toggleHistoryBtn) els.toggleHistoryBtn.onclick = ()=>setPage("history");
+  if(els.toggleBgBtn) els.toggleBgBtn.onclick = ()=>{ state.bgOn = !state.bgOn; updateBgState(); saveState(); };
 
-  els.historySearch.oninput = renderLists;
-  els.favSearch.oninput = renderLists;
+  if(els.exportHistoryBtn) els.exportHistoryBtn.onclick = ()=>downloadText(JSON.stringify(state.history, null, 2), "history.json", "application/json");
+  if(els.clearHistoryBtn) els.clearHistoryBtn.onclick = ()=>{ state.history = []; saveState(); renderLists(); toast("History cleared", "info"); };
+
+  if(els.historySearch) els.historySearch.oninput = renderLists;
+  if(els.favSearch) els.favSearch.oninput = renderLists;
 
   window.addEventListener("online", updateFeatureChips);
   window.addEventListener("offline", updateFeatureChips);
 
   document.addEventListener("keydown", e=>{
     if((e.ctrlKey || e.metaKey) && e.key === "Enter") translateNow();
-    if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "l"){ e.preventDefault(); els.inputText.focus(); }
-    if(e.key === "Escape"){ closeAssistant(); closeModal(); els.comparePanel.classList.remove("open"); }
+    if((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "l"){ e.preventDefault(); els.inputText?.focus(); }
+    if(e.key === "Escape"){ closeAssistant(); closeModal(); els.comparePanel?.classList.remove("open"); }
   });
 
-  els.inputText.addEventListener("input", updateLive);
+  if(els.inputText) els.inputText.addEventListener("input", updateLive);
 }
-function renderLists(){
-  const hs = els.historySearch.value.trim().toLowerCase();
-  const fs = els.favSearch.value.trim().toLowerCase();
-  els.historyList.innerHTML = state.history.filter(x=>!hs || `${x.input} ${x.output} ${x.mode}`.toLowerCase().includes(hs)).map(h=>`
-    <div class="history-item">
-      <strong>${h.source} → ${h.target}</strong> <small>${h.time}</small><br/>
-      <small>${h.mode}</small><br/>
-      <span>${escapeHtml(h.output)}</span>
-    </div>
-  `).join("") || "<p>No history yet.</p>";
-  els.favoritesList.innerHTML = state.favorites.filter(x=>!fs || x.toLowerCase().includes(fs)).map(x=>`
-    <div class="history-item">${escapeHtml(x)}</div>
-  `).join("") || "<p>No favorites yet.</p>";
-}
+
 function init(){
-  [els.sourceLang, els.targetLang].forEach(sel => sel.innerHTML = LANGS.map(([v,t]) => `<option value="${v}">${t}</option>`).join(""));
-  els.sourceLang.value = "auto";
-  els.targetLang.value = "en";
-  els.apiProvider.value = state.apiProvider || "custom";
-  els.apiKey.value = state.apiKey || "";
-  els.apiRegion.value = state.apiRegion || "";
-  els.apiEndpoint.value = state.apiEndpoint || "";
-  els.translateMode.value = state.translateMode || "normal";
-  els.rateRange.value = state.rate || 1;
-  els.pitchRange.value = state.pitch || 1;
+  if(els.sourceLang) els.sourceLang.innerHTML = LANGS.map(([v,t]) => `<option value="${v}">${t}</option>`).join("");
+  if(els.targetLang) els.targetLang.innerHTML = LANGS.map(([v,t]) => `<option value="${v}">${t}</option>`).join("");
+  if(els.sourceLang) els.sourceLang.value = "auto";
+  if(els.targetLang) els.targetLang.value = "hi";
+
+  if(els.apiProvider) els.apiProvider.value = state.apiProvider || "custom";
+  if(els.translatorKey) els.translatorKey.value = state.translatorKey || "";
+  if(els.apiRegion) els.apiRegion.value = state.apiRegion || "";
+  if(els.apiEndpoint) els.apiEndpoint.value = state.apiEndpoint || "";
+  if(els.translateMode) els.translateMode.value = state.translateMode || "normal";
+  if(els.rateRange) els.rateRange.value = state.rate || 1;
+  if(els.pitchRange) els.pitchRange.value = state.pitch || 1;
+  if(els.autoTranslate) els.autoTranslate.checked = true;
+
   renderVoices();
   bindEvents();
-  bindTilt();
   renderLists();
   updateLive();
   applyTheme();
