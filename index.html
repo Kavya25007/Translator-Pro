@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title> Translate Pro</title>
-  <link rel="stylesheet" href="styles.css" />
+  <title>Translator Pro</title>
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <div class="bg-wrap">
@@ -20,10 +20,10 @@
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
       <div class="brand">
-        <div class="logo">NT</div>
+        <div class="logo">TP</div>
         <div>
-          <h2>Neon Translate</h2>
-          <p>Pro dashboard</p>
+          <h2>Translator Pro</h2>
+          <p>Modern dashboard</p>
         </div>
       </div>
 
@@ -42,6 +42,7 @@
           <span id="netChip">Online</span>
           <span id="speechChip">Speech Ready</span>
           <span id="ocrChip">OCR Simulated</span>
+          <span id="bgChip">Background On</span>
         </div>
       </div>
 
@@ -82,7 +83,7 @@
           <div class="cards-grid">
             <div class="mini-card">
               <h3>Fast Translation</h3>
-              <p>Use API or offline simulation with auto translate.</p>
+              <p>Use API or offline simulation with clear source and target language control.</p>
             </div>
             <div class="mini-card">
               <h3>Voice Input</h3>
@@ -102,12 +103,12 @@
         <article class="page" id="page-translate">
           <div class="section-head">
             <h2>Translator</h2>
-            <p>Aligned controls for input, output, translation, copy, download, and speech.</p>
+            <p>Source and target languages are shown clearly so the app always translates in the correct direction.</p>
           </div>
 
           <div class="config-grid">
             <div class="field">
-              <label>API Provider</label>
+              <label>Provider</label>
               <select id="apiProvider">
                 <option value="custom">Custom API</option>
                 <option value="mock">Mock / Offline</option>
@@ -117,8 +118,8 @@
               </select>
             </div>
             <div class="field">
-              <label>API Key</label>
-              <input type="password" id="apiKey" placeholder="Enter API key" />
+              <label>Translator Key</label>
+              <input type="text" id="translatorKey" placeholder="Enter translator key if your service needs it" />
             </div>
             <div class="field">
               <label>Region</label>
@@ -126,7 +127,7 @@
             </div>
             <div class="field wide">
               <label>API Endpoint</label>
-              <input type="url" id="apiEndpoint" placeholder="https://your-api-endpoint.com/translate" />
+              <input type="url" id="apiEndpoint" placeholder="https://api.cognitive.microsofttranslator.com" />
             </div>
           </div>
 
@@ -167,6 +168,8 @@
             </div>
             <button class="action-btn mini" id="detectNowBtn">Detect</button>
           </div>
+
+          <p class="direction-line" id="directionLine">Translating: Auto Detect → Hindi</p>
 
           <div class="main-grid">
             <section class="panel">
@@ -216,6 +219,11 @@
               <div class="info-box">
                 <h3>Summary</h3>
                 <p id="summaryText">Summary will appear here.</p>
+              </div>
+
+              <div class="info-box">
+                <h3>Translation Info</h3>
+                <p id="translationInfo">No translation yet.</p>
               </div>
             </section>
           </div>
@@ -297,7 +305,7 @@
             <div class="panel">
               <h3>UI Controls</h3>
               <div class="button-grid">
-                <button class="action-btn" id="themeBtn">Cycle Theme</button>
+                <button class="action-btn" id="cycleThemeBtn">Cycle Theme</button>
                 <button class="action-btn secondary" id="pauseAnimBtn">Pause Anim</button>
                 <button class="action-btn secondary" id="resumeAnimBtn">Resume Anim</button>
                 <button class="action-btn" id="toggleBgBtn">Toggle Background</button>
@@ -310,6 +318,7 @@
                 <button class="action-btn" id="exportHistoryBtn">Export History</button>
                 <button class="action-btn" id="clearHistoryBtn">Clear History</button>
                 <button class="action-btn" id="reportBtn">Download Report</button>
+                <button class="action-btn secondary" id="toggleHistoryBtn">Go History</button>
               </div>
             </div>
           </div>
@@ -336,7 +345,6 @@
   </div>
 
   <div class="toast-stack" id="toastStack"></div>
-
   <button class="assistant-fab" id="assistantFab">?</button>
 
   <div class="assistant-popup" id="assistantPopup">
@@ -362,6 +370,6 @@
     <p id="modalText"></p>
   </div>
 
-  <script src="script.js"></script>
+  <script src="./script.js"></script>
 </body>
 </html>
