@@ -5,31 +5,63 @@ It includes a futuristic tech UI, live animations, sidebar navigation, assistant
 
 ## Features
 
-- Multi-page dashboard-style UI.
-- Dark tech-professional theme.
-- Glassmorphism cards with blur and transparency.
-- Sidebar navigation with active page switching.
-- Floating background animation and 3D tilt effect.
-- API-based translation support with custom endpoint, key, and region.
-- Auto translate while typing with debounce.
-- Language dropdowns and swap button.
-- Voice input using Web Speech API.
-- Text-to-speech output with selectable voice, rate, and pitch.
-- Clipboard copy for input and output text.
-- URL text fetch for webpage content.
-- Image upload OCR simulation.
-- Camera OCR simulation using browser camera access.
-- Live word count, character count, and reading time.
-- Basic language detection.
-- Basic summarization.
-- Favorites stored in localStorage.
-- Translation history stored in localStorage.
-- Searchable history and favorites panels.
-- Download translated text as TXT.
-- Download report as JSON.
-- Toast notifications for user actions.
-- Small assistant popup for quick navigation help.
-- Responsive layout for desktop and mobile.
+
+### 🧭 UI / UX
+- Multi-page dashboard-style layout
+- Dark futuristic tech theme
+- Glassmorphism UI (blur + transparency)
+- Sidebar navigation with active page switching
+- Floating animated background effects
+- 3D hover tilt interactions
+- Fully responsive design (desktop + mobile)
+
+---
+
+### 🌍 Translation System
+- Real API-based translation support (custom endpoint)
+- Auto-translate while typing (debounced)
+- Language selection with swap functionality
+- Basic language detection support
+- Custom API key + region configuration
+
+---
+
+### 🎤 Voice & Audio
+- Speech-to-text input (Web Speech API)
+- Text-to-speech output (voice selection, speed, pitch control)
+- Microphone-based live input
+
+---
+
+### 📷 OCR & Input Tools
+- Image upload OCR simulation
+- Camera-based OCR simulation (getUserMedia API)
+- URL text extraction from webpages
+- Clipboard copy/paste support
+
+---
+
+### 📊 Smart Utilities
+- Live word, character, and reading time counter
+- Translation history (stored in localStorage)
+- Favorites system (save important translations)
+- Searchable history & favorites
+
+---
+
+### 💾 Export & Save
+- Download translated text as `.txt`
+- Export full report as `.json`
+- Persistent storage using localStorage
+
+---
+
+### 🤖 Assistant Features
+- Floating assistant popup
+- Quick navigation help
+- Fast page switching shortcuts
+
+---
 
 ## Folder Structure
 
