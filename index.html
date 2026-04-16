@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title> Translate Pro</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg-wrap">
+    <div class="bg-overlay"></div>
+    <div class="bg-grid"></div>
+    <div class="bg-orb orb-a"></div>
+    <div class="bg-orb orb-b"></div>
+    <video autoplay muted loop playsinline class="bg-video" id="bgVideo">
+      <source src="https://cdn.coverr.co/videos/coverr-night-traffic-1569361830063?download=1080p" type="video/mp4">
+    </video>
+  </div>
+
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="logo">NT</div>
+        <div>
+          <h2>Neon Translate</h2>
+          <p>Pro dashboard</p>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button class="nav-link active" data-page="dashboard">Dashboard</button>
+        <button class="nav-link" data-page="translate">Translator</button>
+        <button class="nav-link" data-page="voiceocr">Voice & OCR</button>
+        <button class="nav-link" data-page="history">History</button>
+        <button class="nav-link" data-page="settings">Settings</button>
+        <button class="nav-link" data-page="help">Help</button>
+      </nav>
+
+      <div class="side-card">
+        <p class="side-title">Quick Status</p>
+        <div class="side-stats">
+          <span id="netChip">Online</span>
+          <span id="speechChip">Speech Ready</span>
+          <span id="ocrChip">OCR Simulated</span>
+        </div>
+      </div>
+
+      <button class="collapse-btn" id="collapseBtn">Collapse</button>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="icon-btn mobile-only" id="menuBtn">☰</button>
+          <div>
+            <p class="eyebrow">AI Translator Studio</p>
+            <h1 id="pageTitle">Dashboard</h1>
+          </div>
+        </div>
+
+        <div class="topbar-actions">
+          <button class="ghost-btn" id="themeBtn">Theme</button>
+          <button class="ghost-btn" id="toastBtn">Tip</button>
+          <button class="ghost-btn" id="assistantBtn">Assistant</button>
+        </div>
+      </header>
+
+      <section class="content-area">
+        <article class="page active" id="page-dashboard">
+          <div class="hero-card">
+            <div>
+              <p class="hero-tag">Modern dashboard</p>
+              <h2>Translate, listen, capture, and manage everything in one place.</h2>
+              <p class="hero-text">A multi-page translator workspace with strong alignment, live motion, and a professional tech theme.</p>
+            </div>
+            <div class="hero-actions">
+              <button class="action-btn" data-go="translate">Start Translating</button>
+              <button class="action-btn secondary" data-go="voiceocr">Voice & OCR</button>
+            </div>
+          </div>
+
+          <div class="cards-grid">
+            <div class="mini-card">
+              <h3>Fast Translation</h3>
+              <p>Use API or offline simulation with auto translate.</p>
+            </div>
+            <div class="mini-card">
+              <h3>Voice Input</h3>
+              <p>Use speech recognition to dictate text instantly.</p>
+            </div>
+            <div class="mini-card">
+              <h3>OCR Tools</h3>
+              <p>Upload or capture images for simulated OCR flow.</p>
+            </div>
+            <div class="mini-card">
+              <h3>Saved Items</h3>
+              <p>Favorites and history stay in localStorage.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="page" id="page-translate">
+          <div class="section-head">
+            <h2>Translator</h2>
+            <p>Aligned controls for input, output, translation, copy, download, and speech.</p>
+          </div>
+
+          <div class="config-grid">
+            <div class="field">
+              <label>API Provider</label>
+              <select id="apiProvider">
+                <option value="custom">Custom API</option>
+                <option value="mock">Mock / Offline</option>
+                <option value="deepl">DeepL style</option>
+                <option value="google">Google style</option>
+                <option value="microsoft">Microsoft style</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>API Key</label>
+              <input type="password" id="apiKey" placeholder="Enter API key" />
+            </div>
+            <div class="field">
+              <label>Region</label>
+              <input type="text" id="apiRegion" placeholder="e.g. global, us, eu" />
+            </div>
+            <div class="field wide">
+              <label>API Endpoint</label>
+              <input type="url" id="apiEndpoint" placeholder="https://your-api-endpoint.com/translate" />
+            </div>
+          </div>
+
+          <div class="config-grid compact">
+            <div class="field">
+              <label>Mode</label>
+              <select id="translateMode">
+                <option value="normal">Normal</option>
+                <option value="formal">Formal</option>
+                <option value="casual">Casual</option>
+                <option value="technical">Technical</option>
+                <option value="simple">Simplified</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Voice</label>
+              <select id="voiceSelect"></select>
+            </div>
+            <div class="field">
+              <label>Speed</label>
+              <input type="range" id="rateRange" min="0.6" max="1.6" step="0.1" value="1" />
+            </div>
+            <div class="field">
+              <label>Pitch</label>
+              <input type="range" id="pitchRange" min="0.5" max="2" step="0.1" value="1" />
+            </div>
+          </div>
+
+          <div class="lang-row">
+            <div class="field">
+              <label>From</label>
+              <select id="sourceLang"></select>
+            </div>
+            <button class="swap-btn" id="swapBtn">⇄</button>
+            <div class="field">
+              <label>To</label>
+              <select id="targetLang"></select>
+            </div>
+            <button class="action-btn mini" id="detectNowBtn">Detect</button>
+          </div>
+
+          <div class="main-grid">
+            <section class="panel">
+              <div class="panel-head">
+                <h3>Input</h3>
+                <div class="mini-stats">
+                  <span id="charCount">Chars: 0</span>
+                  <span id="wordCount">Words: 0</span>
+                  <span id="readTime">Read: 0m</span>
+                  <span id="detectLabel">Detected: —</span>
+                </div>
+              </div>
+
+              <textarea id="inputText" placeholder="Type text to translate..."></textarea>
+
+              <div class="button-grid">
+                <button class="action-btn" id="translateBtn">Translate</button>
+                <button class="action-btn" id="copyInputBtn">Copy Input</button>
+                <button class="action-btn" id="clearBtn">Clear</button>
+              </div>
+
+              <div class="toggle-row">
+                <label><input type="checkbox" id="autoTranslate" checked /> Auto translate</label>
+                <label><input type="checkbox" id="autoSpeak" /> Auto speak</label>
+                <label><input type="checkbox" id="liveTyping" checked /> Typing animation</label>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <h3>Output</h3>
+                <span id="statusLabel">Ready</span>
+              </div>
+
+              <div class="output-box">
+                <div id="translatedText" class="translated-text"></div>
+                <div class="cursor" id="typingCursor"></div>
+              </div>
+
+              <div class="button-grid">
+                <button class="action-btn" id="ttsBtn">Speak</button>
+                <button class="action-btn" id="copyBtn">Copy</button>
+                <button class="action-btn" id="downloadBtn">Download TXT</button>
+                <button class="action-btn" id="favoriteBtn">Favorite</button>
+              </div>
+
+              <div class="info-box">
+                <h3>Summary</h3>
+                <p id="summaryText">Summary will appear here.</p>
+              </div>
+            </section>
+          </div>
+        </article>
+
+        <article class="page" id="page-voiceocr">
+          <div class="section-head">
+            <h2>Voice & OCR</h2>
+            <p>Use speech input, image upload, camera capture, and URL fetch in one workspace.</p>
+          </div>
+
+          <div class="feature-grid">
+            <div class="panel">
+              <h3>Voice Input</h3>
+              <p>Dictate content using browser speech recognition.</p>
+              <div class="button-grid">
+                <button class="action-btn" id="voiceBtn">Start Voice</button>
+                <button class="action-btn secondary" id="stopVoiceBtn">Stop Voice</button>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h3>OCR Simulation</h3>
+              <p>Upload or capture images and simulate extracted text.</p>
+              <div class="button-grid">
+                <label class="action-btn file-btn">
+                  Upload Image
+                  <input type="file" id="imageUpload" accept="image/*" hidden />
+                </label>
+                <button class="action-btn secondary" id="cameraBtn">Camera OCR</button>
+              </div>
+            </div>
+
+            <div class="panel wide-panel">
+              <h3>URL Import</h3>
+              <div class="button-grid">
+                <input type="url" id="urlInput" placeholder="Paste webpage URL and fetch text" />
+                <button class="action-btn" id="fetchUrlBtn">Fetch URL</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="video-preview">
+            <video id="cameraStream" class="hidden" autoplay playsinline></video>
+            <canvas id="captureCanvas" class="hidden"></canvas>
+          </div>
+        </article>
+
+        <article class="page" id="page-history">
+          <div class="section-head">
+            <h2>History & Favorites</h2>
+            <p>Search, export, and manage your saved translations.</p>
+          </div>
+
+          <div class="history-tools">
+            <input type="text" id="historySearch" class="search-input" placeholder="Search history..." />
+            <input type="text" id="favSearch" class="search-input" placeholder="Search favorites..." />
+          </div>
+
+          <div class="history-grid">
+            <div>
+              <h3>Recent Translations</h3>
+              <div id="historyList" class="list-box"></div>
+            </div>
+            <div>
+              <h3>Favorites</h3>
+              <div id="favoritesList" class="list-box"></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="page" id="page-settings">
+          <div class="section-head">
+            <h2>Settings</h2>
+            <p>Theme and performance controls for a more professional feel.</p>
+          </div>
+
+          <div class="settings-grid">
+            <div class="panel">
+              <h3>UI Controls</h3>
+              <div class="button-grid">
+                <button class="action-btn" id="themeBtn">Cycle Theme</button>
+                <button class="action-btn secondary" id="pauseAnimBtn">Pause Anim</button>
+                <button class="action-btn secondary" id="resumeAnimBtn">Resume Anim</button>
+                <button class="action-btn" id="toggleBgBtn">Toggle Background</button>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h3>Local Data</h3>
+              <div class="button-grid">
+                <button class="action-btn" id="exportHistoryBtn">Export History</button>
+                <button class="action-btn" id="clearHistoryBtn">Clear History</button>
+                <button class="action-btn" id="reportBtn">Download Report</button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="page" id="page-help">
+          <div class="section-head">
+            <h2>Help</h2>
+            <p>Use the assistant pop-up for quick guidance and query help.</p>
+          </div>
+
+          <div class="panel">
+            <h3>Shortcuts</h3>
+            <ul class="help-list">
+              <li>Ctrl + Enter: Translate</li>
+              <li>Ctrl + L: Focus input</li>
+              <li>Use sidebar to switch pages</li>
+              <li>Open assistant for quick navigation tips</li>
+            </ul>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast-stack" id="toastStack"></div>
+
+  <button class="assistant-fab" id="assistantFab">?</button>
+
+  <div class="assistant-popup" id="assistantPopup">
+    <div class="assistant-head">
+      <h3>Assistant</h3>
+      <button id="closeAssistantBtn">×</button>
+    </div>
+    <p id="assistantText">Welcome! Choose a page from the sidebar or ask me what to do.</p>
+    <div class="assistant-actions">
+      <button class="assistant-btn" data-help="translate">Go to Translator</button>
+      <button class="assistant-btn" data-help="voiceocr">Open Voice & OCR</button>
+      <button class="assistant-btn" data-help="history">Show History</button>
+      <button class="assistant-btn" data-help="settings">Open Settings</button>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modalBackdrop"></div>
+  <div class="modal-box" id="modalBox">
+    <div class="modal-head">
+      <h3>Quick Tip</h3>
+      <button id="closeModalBtn">×</button>
+    </div>
+    <p id="modalText"></p>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
